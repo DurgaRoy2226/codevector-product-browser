@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeVector Product Browser</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family: Inter, Segoe UI, sans-serif;
+            background:#0f172a;
+            color:#e2e8f0;
+            min-height:100vh;
+        }
+
+        .container{
+            max-width:1200px;
+            margin:auto;
+            padding:50px 20px;
+        }
+
+        .hero{
+            text-align:center;
+            margin-bottom:30px;
+        }
+
+        .hero h1{
+            font-size:52px;
+            font-weight:800;
+            line-height:1.1;
+
+            background:linear-gradient(
+                90deg,
+                #ffffff,
+                #60a5fa
+            );
+
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .hero p{
+            margin-top:10px;
+            color:#94a3b8;
+            font-size:17px;
+            line-height:1.6;
+        }
+
+        .product-count{
+            margin-top:12px;
+            color:#60a5fa;
+            font-size:13px;
+            letter-spacing:1px;
+            text-transform:uppercase;
+        }
+
+        .toolbar{
+            display:flex;
+            justify-content:flex-end;
+            margin-bottom:25px;
+        }
+
+        select{
+            background:#1e293b;
+            color:white;
+            border:none;
+            padding:12px 16px;
+            border-radius:12px;
+            cursor:pointer;
+            font-size:14px;
+        }
+
+        .products{
+            display:grid;
+            grid-template-columns:
+            repeat(auto-fill,minmax(280px,1fr));
+            gap:20px;
+        }
+
+        .product{
+            background:#1e293b;
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:18px;
+            padding:20px;
+            transition:.25s ease;
+        }
+
+        .product:hover{
+            transform:translateY(-5px);
+            border-color:#2563eb;
+            box-shadow:
+            0 10px 25px rgba(37,99,235,.20);
+        }
+
+        .product-name{
+            font-size:20px;
+            font-weight:600;
+            margin-bottom:14px;
+            text-transform:capitalize;
+        }
+
+        .badge{
+            display:inline-block;
+            background:#2563eb;
+            padding:6px 12px;
+            border-radius:999px;
+            font-size:12px;
+            margin-bottom:14px;
+        }
+
+        .price{
+            font-size:28px;
+            font-weight:700;
+            margin-bottom:12px;
+        }
+
+        .meta{
+            color:#94a3b8;
+            font-size:14px;
+        }
+
+        .loading{
+            display:none;
+            text-align:center;
+            margin-top:15px;
+            color:#94a3b8;
+        }
+
+        .load-btn{
+            display:block;
+            margin:35px auto;
+            padding:14px 28px;
+            border:none;
+            border-radius:12px;
+            background:#2563eb;
+            color:white;
+            cursor:pointer;
+            font-size:15px;
+            transition:.2s;
+        }
+
+        .load-btn:hover{
+            background:#1d4ed8;
+        }
+
+        .footer{
+            text-align:center;
+            margin-top:50px;
+            color:#64748b;
+            font-size:14px;
+        }
+
+        @media(max-width:768px){
+
+            .hero h1{
+                font-size:38px;
+            }
+
+            .toolbar{
+                justify-content:center;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="hero">
+
+        <h1>
+            CodeVector Product Browser
+        </h1>
+
+        <p>
+            Browse and filter 200,000+ products using
+            cursor-based pagination powered by FastAPI and PostgreSQL.
+        </p>
+
+        <div class="product-count">
+            Internship Assignment • 200,000+ Products
+        </div>
+
+    </div>
+
+    <div class="toolbar">
+
+        <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option>Electronics</option>
+            <option>Books</option>
+            <option>Sports</option>
+            <option>Home</option>
+            <option>Clothing</option>
+        </select>
+
+    </div>
+
+    <div
+        id="products"
+        class="products">
+    </div>
+
+    <div
+        id="loading"
+        class="loading">
+        Loading products...
+    </div>
+
+    <button
+        class="load-btn"
+        onclick="loadProducts()">
+        Load More Products
+    </button>
+
+    <div class="footer">
+        Built with FastAPI • PostgreSQL • Cursor Pagination
+    </div>
+
+</div>
+
+<script>
+
+let cursor = null;
+
+const categoryFilter =
+document.getElementById("categoryFilter");
+
+categoryFilter.addEventListener(
+    "change",
+    () => {
+
+        document.getElementById(
+            "products"
+        ).innerHTML = "";
+
+        cursor = null;
+
+        loadProducts();
+    }
+);
+
+async function loadProducts(){
+
+    document.getElementById(
+        "loading"
+    ).style.display = "block";
+
+    let url = "/products";
+
+    const category =
+        categoryFilter.value;
+
+    const params = [];
+
+    if(category){
+        params.push(
+            "category=" + category
+        );
+    }
+
+    if(cursor){
+        params.push(
+            "cursor_id=" + cursor
+        );
+    }
+
+    if(params.length){
+        url += "?" + params.join("&");
+    }
+
+    const response =
+        await fetch(url);
+
+    const data =
+        await response.json();
+
+    cursor =
+        data.next_cursor;
+
+    const container =
+        document.getElementById(
+            "products"
+        );
+
+    data.products.forEach(product => {
+
+        container.innerHTML += `
+        <div class="product">
+
+            <div class="product-name">
+                ${product.name}
+            </div>
+
+            <div class="badge">
+                ${product.category}
+            </div>
+
+            <div class="price">
+                ₹${product.price}
+            </div>
+
+            <div class="meta">
+                Product ID: ${product.id}
+            </div>
+
+        </div>
+        `;
+    });
+
+    document.getElementById(
+        "loading"
+    ).style.display = "none";
+}
+
+loadProducts();
+
+</script>
+
+</body>
+</html>

@@ -1,57 +1,78 @@
-from faker import Faker
 from random import choice, uniform
-from datetime import timedelta
+from datetime import datetime
 
 from app.database import SessionLocal
 from app.models import Product
 
-fake = Faker()
-
 db = SessionLocal()
 
-categories = [
-    "Electronics",
-    "Books",
-    "Sports",
-    "Home",
-    "Clothing"
-]
+products_catalog = {
+    "Electronics": [
+        "Apple MacBook Air M2",
+        "Dell XPS 13",
+        "Samsung Galaxy S24",
+        "iPhone 15",
+        "Sony WH-1000XM5",
+        "Logitech MX Master 3S"
+    ],
+    "Books": [
+        "Atomic Habits",
+        "Deep Work",
+        "Clean Code",
+        "Rich Dad Poor Dad",
+        "Python for Data Science",
+        "The Psychology of Money"
+    ],
+    "Sports": [
+        "Nike Running Shoes",
+        "Cricket Bat",
+        "Football",
+        "Yoga Mat",
+        "Dumbbell Set",
+        "Tennis Racket"
+    ],
+    "Home": [
+        "Office Chair",
+        "Study Table",
+        "LED Desk Lamp",
+        "Wall Clock",
+        "Coffee Table",
+        "Bookshelf"
+    ],
+    "Clothing": [
+        "Polo T-Shirt",
+        "Denim Jeans",
+        "Hoodie",
+        "Formal Shirt",
+        "Jacket",
+        "Sneakers"
+    ]
+}
 
-TOTAL_PRODUCTS = 200000
-BATCH_SIZE = 10000
+BATCH_SIZE = 5000
+TOTAL_RECORDS = 200000
 
-for batch_start in range(0, TOTAL_PRODUCTS, BATCH_SIZE):
+for start in range(0, TOTAL_RECORDS, BATCH_SIZE):
 
     products = []
 
     for _ in range(BATCH_SIZE):
 
-        created_time = fake.date_time_between(
-            start_date="-365d",
-            end_date="now"
-        )
-
-        updated_time = created_time + timedelta(
-            days=choice(range(0, 30))
-        )
+        category = choice(list(products_catalog.keys()))
 
         products.append(
             Product(
-                name=fake.word(),
-                category=choice(categories),
-                price=round(uniform(100, 100000), 2),
-                created_at=created_time,
-                updated_at=updated_time
+                name=choice(products_catalog[category]),
+                category=category,
+                price=round(uniform(500, 100000), 2),
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
             )
         )
 
     db.bulk_save_objects(products)
     db.commit()
 
-    print(
-        f"Inserted {batch_start + BATCH_SIZE}/{TOTAL_PRODUCTS}"
-    )
+    print(f"Inserted {start + BATCH_SIZE} products")
 
-db.close()
-
-print("✅ Inserted 200000 products")
+print("Finished inserting 200000 products")
