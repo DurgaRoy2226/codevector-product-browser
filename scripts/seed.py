@@ -1,6 +1,6 @@
 from faker import Faker
 from random import choice, uniform
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from app.database import SessionLocal
 from app.models import Product
@@ -17,8 +17,8 @@ categories = [
     "Clothing"
 ]
 
-BATCH_SIZE = 10000
 TOTAL_PRODUCTS = 200000
+BATCH_SIZE = 10000
 
 for batch_start in range(0, TOTAL_PRODUCTS, BATCH_SIZE):
 
